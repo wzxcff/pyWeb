@@ -8,38 +8,34 @@ PORT = 8000
 class ServerHTTP(BaseHTTPRequestHandler):
 
     def do_GET(self):
-        if self.path == "/html/index.html":
-            self.send_response(200, "main page")
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
+        # Cache request
+        path = self.path
 
-            with open("html/index.html", "r") as file:
-                content = file.read()
-
-            self.wfile.write(bytes(content, "utf-8"))
-        elif self.path == "/html/script.js":
-            self.send_response(200)
-            self.send_header("Content-type", "text/javascript")
-            self.end_headers()
-        elif self.path == "/html/style.css":
-            self.send_response(200)
-            self.send_header("Content-type", "text/css")
-            self.end_headers()
-        elif self.path == "/html/img/about.jpg":
-            self.send_response(200)
-            self.send_header("Content-type", "image/jpeg")
-            self.end_headers()
-        elif self.path == "/html/style.css":
-            self.send_response(200)
-            self.send_header("Content-type", "text/css")
-            self.end_headers()
+        # Validate request path, and set type
+        if path == "/resources/index.html":
+            content_type = "text/html"
+        elif path == "/resources/index.js":
+            content_type = "text/javascript"
+        elif path == "/resources/styles.css":
+            content_type = "text/css"
+        elif "/resources/img" in path:
+            content_type = "image/jpeg"
         else:
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
+            # Wild-card/default
+            if not path == "/":
+                print("UNRECONGIZED REQUEST:", path)
 
-            self.wfile.write(bytes("<html><body><a href='main'>To main page!</a></body></html>", "utf-8"))
+            path = "/resources/index.html"
+            content_type = "text/resources"
 
+        # Set header with content type
+        self.send_response(200)
+        self.send_header("Content-type", content_type)
+        self.end_headers()
+
+        # Open the file, read bytes, serve
+        with open(path[1:], 'rb') as file:
+            self.wfile.write(file.read())  # Send
 
     def do_POST(self):
         self.send_response(200)
